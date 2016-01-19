@@ -1,0 +1,183 @@
+import java.util.Scanner;
+public class BattleshipPlayer {
+	String name, rowString;
+	private BattleshipGrid grid=new BattleshipGrid();
+	char row;
+	int column;
+	int aircraft=5, battleship=4, cruiser=3, sub=3, destroyer=2;
+	Scanner user_input = new Scanner( System.in );
+	BattleshipPlayer(){
+		name=null;
+	}
+	public void initializeGrid(){
+		grid=new BattleshipGrid();
+	}
+	public void startGame(){		
+		if (name==null){
+			System.out.println("Please enter your name");
+			name=user_input.nextLine();
+			System.out.println("Welcome "+name);
+		}
+	}
+	public String playerName(){
+		return name;
+	}
+	public Position shoot(){
+		boolean caught=false;
+		String temp;
+		int errorcount=-1;
+		do{
+			if (errorcount>=0){
+				System.out.println("Error");
+			}
+			System.out.println("Please enter a row (A-J)");
+			rowString=user_input.next();
+			rowString.toUpperCase();
+			errorcount++;
+			row=rowString.charAt(0);
+		}while(rowString.length()>1||!(rowString.equalsIgnoreCase("A")||rowString.equalsIgnoreCase("B")||
+		rowString.equalsIgnoreCase("C")||rowString.equalsIgnoreCase("D")
+		||rowString.equalsIgnoreCase("E")||rowString.equalsIgnoreCase("F")||
+		rowString.equalsIgnoreCase("G")||rowString.equalsIgnoreCase("H")||
+		rowString.equalsIgnoreCase("I")||rowString.equalsIgnoreCase("J")));	
+
+		errorcount=-1;
+		
+		do{
+			caught=false;
+			if (errorcount>=0){
+				System.out.println("Error");
+			}
+			System.out.println("Please enter a column (1-10)");
+			temp=user_input.next();
+			try{
+				column=Integer.parseInt(temp);
+			}catch(Exception e){
+				caught=true;
+			}			
+			errorcount++;
+		} while(column>10||caught==true);
+		Position position=new Position (row, column);
+		return position;
+	}
+	public void updateGrid(Position pos, boolean hit, char initial){
+		grid.shotAt(pos, hit, initial);
+	}
+	public BattleshipGrid getGrid(){
+		return grid;
+	}
+	public void updatePlayer(Position pos, boolean hit, char initial, 
+	String boatName, boolean sunk, boolean gameOver, boolean tooManyTurns, 
+	int turns){
+			char A='A', B='B', C='C', D='D', S='S';
+			updateGrid(pos, hit, initial);
+				
+			String[][] a = new String[10][10];
+			a=positions(a);
+			System.out.println("   1 2 3 4 5 6 7 8 9 10");
+			for (int j=0; j<10; j++){
+				System.out.print(printChar(j)+"  ");
+				for (int i=0; i<10; i++){
+					System.out.print(a[j][i]+" ");
+				}
+				System.out.println();
+			}
+			System.out.println();
+			System.out.print("Turn #"+turns+": Your shot was at "+pos.toString()+" was a ");
+
+			if (hit){
+				System.out.println("hit");
+				System.out.print("You hit a");
+				if (initial==A){
+					System.out.println("n Aircraft Carrier");
+					aircraft--;
+					if (sunk){
+						System.out.println("You've sunk the Aircraft Carrier");
+					}
+				}else if (initial==B){
+					System.out.println(" Battleship");
+					battleship--;
+					if (sunk){
+						System.out.println("You've sunk the Battleship");
+					}
+				}else if (initial==C){
+					System.out.println(" Cruiser");
+					cruiser--;
+					if (sunk){
+						System.out.println("You've sunk the Cruiser");
+					}
+				}else if (initial==D){
+					System.out.println(" Destroyer");
+					destroyer--;
+					if (sunk){
+						System.out.println("You've sunk the Destroyer");
+					}
+				}else if (initial==S){
+					System.out.println(" Submarine");
+					sub--;
+					if (sunk){
+						System.out.println("You've sunk the Submarine");
+					}
+				}
+			}else {
+				System.out.println("miss");
+			}
+
+			if (gameOver){
+				System.out.println("Game Over");
+			}
+		if (tooManyTurns){
+			System.out.println("You've had too many turns!");
+		}
+	
+	}
+	private String[][] positions(String [] [] a){
+		Position position;
+		for (int i=0; i<10; i++){
+			for (int j=0; j<10; j++){
+				position=new Position (i,j);
+				if (grid.hit(position)){
+					a[i][j]=(""+grid.boatInitial(position));
+				}
+				if (grid.miss(position)){
+					a[i][j]="*";
+				}
+				if (grid.empty(position)){
+					a[i][j]=".";
+				}
+			}
+		}
+		return a;
+	}
+	private char printChar(int letter){
+		char row = 0;
+		if (letter==5){
+			row='F';
+		}else if (letter<5){
+			if (letter==3){
+				row='D';
+			}else if (letter<3){
+				if (letter<1){
+					row='A';
+				}else if (letter==2){
+					row='C';
+				}else{
+					row='B';
+				}
+			}	else if (letter>3){
+				row='E';
+			}
+		}else{
+			if (letter==8){
+				row='I';
+			}	else if (letter==7){
+				row='H';
+			}	else if (letter==9){
+				row='J';
+			}	else{
+				row='G';
+			}
+		}
+		return row;
+	}
+}
