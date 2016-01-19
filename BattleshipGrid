@@ -1,0 +1,72 @@
+import java.util.ArrayList;
+public class BattleshipGrid {
+	private ArrayList<String> HitPositions=new ArrayList<String>();
+	private ArrayList<Position> MissPositions=new ArrayList<Position>();
+	private ArrayList<Position> EmptyPositions=new ArrayList<Position>();
+	BattleshipGrid(){
+		for(int i=0; i<10; i++){
+			for (int j=0; j<10; j++){
+				EmptyPositions.add(new Position(i,j));
+			}
+		}
+	}
+	public void shotAt(Position pos,boolean hit,char initial){
+		if (hit==false){
+			MissPositions.add(pos);
+			if (removestuff(pos)>=0){
+				EmptyPositions.remove(removestuff(pos));
+			}
+		}else{
+			if (removestuff(pos)>=0){
+				EmptyPositions.remove(removestuff(pos));
+			}
+			HitPositions.add(pos.toString()+" "+initial);
+		}
+	}
+	public boolean hit(Position pos){
+		for (Object positions: EmptyPositions){
+			if ((pos.toString()).compareTo(positions.toString())==0){
+				return false;
+			}
+		}
+		return true;
+	}
+	public boolean miss(Position pos){
+		for (Object position: MissPositions){
+			if ((pos.toString()).compareTo(position.toString())==0){
+				return true;
+			}
+		}
+		return false;
+	}
+	public boolean empty(Position pos){
+		for (Object positions: EmptyPositions){
+			if ((pos.toString()).compareTo(positions.toString())==0){
+				return true;
+			}
+		}
+		return false;
+	}
+	public char boatInitial(Position pos){
+		for (Object stringsInArray: HitPositions){
+			if ((pos.toString().substring(0,3)).compareTo(((String) stringsInArray).substring(0,3))==0){
+				if (((String) stringsInArray).length()<6){			
+					return ((String) stringsInArray).charAt(4);
+				}else{
+					return ((String) stringsInArray).charAt(5);
+				}
+			}
+		}
+		return 0;
+	}
+	private int removestuff(Position pos){
+		int i=0;
+		for (Object positions: EmptyPositions){
+			if ((pos.toString()).compareTo(positions.toString())==0){
+			return i;
+			}
+			i++;
+		}
+		return -1;
+	}
+}
