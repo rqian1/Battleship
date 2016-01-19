@@ -1,0 +1,91 @@
+import java.util.ArrayList;
+public class Boat {
+	private String name;
+	private int size;
+	private Position position;
+	private String direction;
+	private ArrayList<Position> HitPositions=new ArrayList<Position>();
+	private ArrayList<Position> BoatPositions = new ArrayList<Position>();
+	Boat (String ship, Position startPosition, String directionofBoat){
+		BoatPositions.add(startPosition);
+		name=ship;
+		if(name.substring(0,1).equalsIgnoreCase("A")){
+			size=5;    
+		}else if(name.substring(0,1).equalsIgnoreCase("B")){
+			size=4;
+		}else if (name.substring(0,1).equalsIgnoreCase("C")||
+		name.substring(0,1).equalsIgnoreCase("S")){
+			size= 3;
+		}else{
+			size= 2;
+		}
+		position=startPosition;
+		direction=directionofBoat.toLowerCase();
+		int row = startPosition.rowIndex();
+		int column = startPosition.columnIndex();
+		if (direction.equals("vertical")){
+			for (int b=row; b<=size+row-2; b++){
+				Position A = new Position (b+1, startPosition.columnIndex() );
+				BoatPositions.add(A);
+			}
+		}else if (direction.equals("horizontal")){
+			for (int c=column; c<=size+column-2; c++){
+				Position A = new Position (startPosition.rowIndex(), c+1);
+				BoatPositions.add(A);
+			}
+		}
+
+	}
+	public String name(){
+		return name;
+	}
+	public char abbreviation(){
+		char ab=name.charAt(0);
+		return ab;    
+	}
+	public int size(){
+		return size;
+	}
+	
+	public boolean isHit(Position hitHere){
+		String position = hitHere.toString();
+		for (Object pos: HitPositions){
+			String onBoat =  pos.toString();
+			if(onBoat.compareTo(position)==0){
+				return true;
+			}
+		}
+		return false;
+	}
+	public boolean onBoat (Position hitThis){
+		String position = hitThis.toString();
+		for (Object pos: BoatPositions){
+			String onBoat =  pos.toString();
+			if(onBoat.compareTo(position)==0){
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public void hit (Position hitThis){
+		if(onBoat(hitThis)){
+			HitPositions.add(hitThis);
+		}
+	}
+	public boolean sunk(){
+		for (Object pos: BoatPositions){
+			if (isHit((Position) pos)){
+			}else{
+				return false;
+			}
+		}
+		return true;
+	}
+	public Position position (){
+		return position;
+	}
+	public String direction (){
+		return direction;
+	}
+}
