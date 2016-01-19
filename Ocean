@@ -1,0 +1,26 @@
+//(int)(Math.random() * (max - min) + min)
+public class Ocean extends GoodOcean{
+	public void placeAllBoats(){	
+		boolean placed=false;
+		int boatsPlaced=0, direction, locationX, locationY;
+		String boatDirection;
+		String[] boatnames={"Aircraft Carrier", "Battleship", "Cruiser", "Submarine", "Destroyer"};
+		while(placed==false || boatsPlaced<5){
+			direction=(int)(Math.random() * (2 - 0) + 0); //horizontal=0 vertical=1
+			locationX=(int)(Math.random() * (10 - 0) + 0);
+			locationY=(int)(Math.random() * (10 - 0) + 0);
+			try{
+				if (direction==0){
+					boatDirection="horizontal";
+				}else{
+					boatDirection="vertical";
+				}
+				placeBoat(boatnames[boatsPlaced], boatDirection, new Position (locationX, locationY));
+				placed = true;
+				boatsPlaced++;
+			}catch(Exception e){
+				placed=false;
+			}
+		}
+	}
+}
