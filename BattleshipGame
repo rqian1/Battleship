@@ -1,0 +1,40 @@
+
+public class BattleshipGame {
+	Ocean ocean;
+	BattleshipPlayer player1;
+	int turns;
+	BattleshipGame(BattleshipPlayer player){
+		ocean=new Ocean();
+		ocean.placeAllBoats();
+		player1=player;
+		turns=0;
+		player1.startGame();
+	}
+
+	public int play(){
+		Position hitThis;
+		boolean hit, sunk, gameOver=false, tooManyTurns=false;
+		char initial;
+		String boatName="";
+		while(!(turns==100)&&gameOver==false){
+			turns++;
+			hitThis=player1.shoot();
+			ocean.shootAt(hitThis);
+			hit= ocean.hit(hitThis);
+			//System.out.println("was it hit? "+hit);
+			sunk=ocean.sunk(hitThis);
+			if (turns==100){
+				tooManyTurns=true;
+			}
+			if (hit){
+				initial=ocean.boatInitial(hitThis);
+				boatName=ocean.boatName(hitThis);
+			}else{
+				initial='z';
+			}
+			gameOver=ocean.allSunk();
+			player1.updatePlayer(hitThis, hit, initial, boatName, sunk, gameOver, tooManyTurns, turns);
+		}
+		return turns;
+	}
+}
