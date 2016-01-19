@@ -1,0 +1,1114 @@
+import java.util.ArrayList;
+import java.lang.Math;
+public class RuiQianStrategy extends ComputerBattleshipPlayer{
+	private ArrayList<Position> ToHit=new ArrayList<Position>();
+	private ArrayList<Position> HitPositions=new ArrayList<Position>();
+	private ArrayList<Position> BoatPositionsAC=new ArrayList<Position>();
+	private ArrayList<Position> BoatPositionsB=new ArrayList<Position>();
+	private ArrayList<Position> BoatPositionsS=new ArrayList<Position>();
+	private ArrayList<Position> BoatPositionsC=new ArrayList<Position>();
+	private ArrayList<Position> BoatPositionsD=new ArrayList<Position>();
+	private ArrayList<Position> AllBoats=new ArrayList<Position>();
+	private Position position=new Position(0,0), lastPosition;
+	private boolean Asunk=false, Bsunk=false, Ssunk=false, Csunk=false,Dsunk=false,lasthit=false,
+	Ahoriz=false, Avert=false, Bhoriz=false, Bvert=false, Choriz=false, Cvert=false, Dhoriz=false, Dvert=false, Shoriz=false,Svert=false;
+	private boolean aFound=false, bFound=false, cFound=false, dFound=false, sFound=false,allfound=false;
+	private int origArow, origBrow, origCrow,origDrow,origSrow, origAcol,origBcol, origCcol,origDcol,origScol;
+	private String boat,boatfound, lastboat;
+	private BattleshipGrid grid=new BattleshipGrid();
+
+	private String[][] positions(String [] [] a){
+		Position position;
+		for (int i=0; i<10; i++){
+			for (int j=0; j<10; j++){
+				position=new Position (i,j);
+				if (grid.hit(position)){
+					a[i][j]=(""+grid.boatInitial(position));
+				}
+				if (grid.miss(position)){
+					a[i][j]="*";
+				}
+				if (grid.empty(position)){
+					a[i][j]=".";
+				}
+			}
+		}
+		return a;
+	}
+	public void startGame(){
+		initializeGrid();
+		ToHit=new ArrayList<Position>();
+		for (int i=0; i<10; i+=2){
+			for (int j=0; j<10; j+=2){
+				ToHit.add(new Position(i,j));
+			}
+		}
+		for (int i=1; i<10; i+=2){
+			for (int j=1; j<10; j+=2){
+				ToHit.add(new Position(i,j));
+			}
+		}
+		ToHit.add(new Position (0,0));
+
+		HitPositions=new ArrayList<Position>();
+		BoatPositionsAC=new ArrayList<Position>();
+		BoatPositionsB=new ArrayList<Position>();
+		BoatPositionsS=new ArrayList<Position>();
+		BoatPositionsC=new ArrayList<Position>();
+		BoatPositionsD=new ArrayList<Position>();
+		Asunk=false; Bsunk=false; Ssunk=false; Csunk=false;Dsunk=false;lasthit=false;
+		Ahoriz=false; Avert=false; Bhoriz=false; Bvert=false; Choriz=false; 
+		Cvert=false; Dhoriz=false; Dvert=false; Shoriz=false;Svert=false;
+		aFound=false; bFound=false; cFound=false; dFound=false; sFound=false;
+		allfound=false;
+		grid=new BattleshipGrid();
+		grid=getGrid();
+	}
+	public void updateGrid(Position pos, boolean hit, char initial){
+		grid.shotAt(pos, hit, initial);
+	}
+	public String playerName(){
+		return "Rui Qian";
+	}
+	private char printChar(int letter){
+		char row = 0;
+		if (letter==5){
+			row='F';
+		}else if (letter<5){
+			if (letter==3){
+				row='D';
+			}else if (letter<3){
+				if (letter<1){
+					row='A';
+				}else if (letter==2){
+					row='C';
+				}else{
+					row='B';
+				}
+			}	else if (letter>3){
+				row='E';
+			}
+		}else{
+			if (letter==8){
+				row='I';
+			}	else if (letter==7){
+				row='H';
+			}	else if (letter==9){
+				row='J';
+			}	else{
+				row='G';
+			}
+		}
+		return row;
+	}
+	
+	public void updatePlayer(Position pos, boolean hit, char initial, 
+			String boatName, boolean sunk, boolean gameOver, boolean tooManyTurns, 
+			int turns){
+		char A='A', B='B', C='C', D='D', S='S';
+		super.updatePlayer(pos, hit, initial, boatName, sunk, gameOver, tooManyTurns, turns);
+		if (hit){
+			lasthit=true;
+			boat=boatName;
+			lastboat=boatName;
+			lastPosition=pos;
+		}else{
+			lastboat="z";
+		}
+		if (hit){
+			if (initial==A){
+				aircraft--;
+			}else if (initial==B){
+				battleship--;
+			}else if (initial==C){
+				cruiser--;
+			}else if (initial==D){
+				destroyer--;
+			}else if (initial==S){
+				sub--;
+			}
+		}else {
+		}
+			
+		String[][] a = new String[10][10];
+		a=positions(a);
+		System.out.println("   1 2 3 4 5 6 7 8 9 10");
+		for (int j=0; j<10; j++){
+			System.out.print(printChar(j)+"  ");
+			for (int i=0; i<10; i++){
+				System.out.print(a[j][i]+" ");
+			}
+			System.out.println();
+		}
+		System.out.println();
+		System.out.print("Turn #"+turns+": Your shot was at "+pos.toString()+" was a ");
+
+		if (hit){
+			System.out.println("hit");
+			System.out.print("You hit a");
+			if (initial==A){
+				System.out.println("n Aircraft Carrier");
+				aircraft--;
+				if (sunk){
+					System.out.println("You've sunk the Aircraft Carrier");
+				}
+			}else if (initial==B){
+				System.out.println(" Battleship");
+				battleship--;
+				if (sunk){
+					System.out.println("You've sunk the Battleship");
+				}
+			}else if (initial==C){
+				System.out.println(" Cruiser");
+				cruiser--;
+				if (sunk){
+					System.out.println("You've sunk the Cruiser");
+				}
+			}else if (initial==D){
+				System.out.println(" Destroyer");
+				destroyer--;
+				if (sunk){
+					System.out.println("You've sunk the Destroyer");
+				}
+			}else if (initial==S){
+				System.out.println(" Submarine");
+				sub--;
+				if (sunk){
+					System.out.println("You've sunk the Submarine");
+				}
+			}
+		}else {
+			System.out.println("miss");
+		}
+
+		if (gameOver){
+			System.out.println("Game Over");
+		}
+	if (tooManyTurns){
+		System.out.println("You've had too many turns!");
+	}
+		
+		
+	}
+
+	public Position shoot(){
+		boolean track=false;
+		int indextoHit;		
+
+		if (track==false){
+			keeptrackoflasthit();
+		}
+
+		if ((sFound&&dFound&&cFound&&bFound&&aFound)||HitPositions.size()==50){
+			allfound=true;
+		}
+		if (allfound==false){
+			do{
+				indextoHit=(int)(Math.random() * (50 - 0) + 0);
+				position=ToHit.get(indextoHit);
+			}while(alreadyshot(position));
+		}else 
+			if(allfound==true){
+				if (BoatPositionsAC.size()<5){
+					if (BoatPositionsAC.size()>1&&(Ahoriz==false&&Avert==false)){
+						directionofACBoat();
+					}else if (BoatPositionsAC.size()==1&&(Ahoriz==false&&Avert==false)){
+						System.out.println("Only his AC once");
+						origArow=BoatPositionsAC.get(0).rowIndex();
+						origAcol=BoatPositionsAC.get(0).columnIndex();
+						position = direction(origArow,origAcol);	
+						HitPositions.add(position);
+						return position;
+					}
+				}
+
+				if (BoatPositionsB.size()<4){
+					//try to figure out if B is horiz or verti
+					if (BoatPositionsB.size()>1&&(Bhoriz==false&&Bvert==false)){
+						directionofBBoat();
+					}else if (BoatPositionsB.size()==1&&(Bhoriz==false&&Bvert==false)){
+						System.out.println("only his B once");
+						origBrow=BoatPositionsB.get(0).rowIndex();
+						origBcol=BoatPositionsB.get(0).columnIndex();
+						position= direction(origBrow,origBcol);
+						HitPositions.add(position);
+						return position;
+					}
+				}
+				if (BoatPositionsC.size()<3){
+					if (BoatPositionsC.size()>1&&(Choriz==false&&Cvert==false)){
+						directionofCBoat();
+					}else if (BoatPositionsC.size()==1&&(Choriz==false&&Cvert==false)){
+						System.out.println("Only hiT C once");
+						origCrow=BoatPositionsC.get(0).rowIndex();
+						origCcol=BoatPositionsC.get(0).columnIndex();
+						position= direction(origCrow,origCcol);
+						HitPositions.add(position);
+						return position;
+					}
+				}
+				if (BoatPositionsD.size()<2){
+					//try to figure out if D is horz or vert
+					origDrow=BoatPositionsD.get(0).rowIndex();
+					origDcol=BoatPositionsD.get(0).columnIndex();
+					position= direction(origDrow,origDcol);
+					HitPositions.add(position);
+					return position;
+				}
+				if (BoatPositionsS.size()<3){
+					//try to figure out if S is horiz or vert
+					if (BoatPositionsS.size()>1&&(Shoriz==false&&Svert==false)){
+						directionofSBoat();
+					}else if (BoatPositionsS.size()==1&&(Shoriz==false&&Svert==false)){
+						System.out.println("Only hit D once");
+						origSrow=BoatPositionsS.get(0).rowIndex();
+						origScol=BoatPositionsS.get(0).columnIndex();
+						position= direction(origSrow,origScol);
+						HitPositions.add(position);
+						return position;
+					}
+				}
+			}
+
+		if (BoatPositionsC.size()>1&&BoatPositionsC.size()<4&&(Choriz==true||Cvert==true)&&Csunk==false){
+			position= sinkC(Choriz);
+			HitPositions.add(position);
+			return position;
+		}
+		if (BoatPositionsS.size()>1&&BoatPositionsS.size()<4&&(Shoriz==true||Svert==true)&&Ssunk==false){
+			position= sinkS(Shoriz);
+			HitPositions.add(position);
+			return position;
+		}
+		if (BoatPositionsB.size()>1&&BoatPositionsB.size()<5&&(Bhoriz==true||Bvert==true)&&Bsunk==false){
+			position= sinkB(Bhoriz);
+			HitPositions.add(position);
+			return position;
+		}
+		if (BoatPositionsAC.size()>1&&BoatPositionsAC.size()<6&&(Ahoriz==true||Avert==true)&&Asunk==false){
+			position= sinkAC(Ahoriz);
+			HitPositions.add(position);
+			return position;
+		}
+		if (sFound&&dFound&&cFound&&bFound&&aFound){
+			allfound=true;
+		}
+		HitPositions.add(position);
+		return position;
+	}
+	private boolean alreadyshot(Position position){
+		for (Object instance: HitPositions){
+			if ((position.toString()).compareTo(instance.toString())==0){
+				return true;
+			}
+		}
+		return false;
+	}	
+	private void directionofSBoat(){
+		int row1,row2,column1,column2;
+		row1=BoatPositionsS.get(0).rowIndex();
+		row2=BoatPositionsS.get(1).rowIndex();
+		column1=BoatPositionsS.get(0).columnIndex();
+		column2=BoatPositionsS.get(1).columnIndex();
+		if (row1==row2){
+			Shoriz=true;
+		} else if (column1==column2){
+			Svert=true;
+		}
+	}
+	private void directionofCBoat(){
+		int row1,row2,column1,column2;
+		row1=BoatPositionsC.get(0).rowIndex();
+		row2=BoatPositionsC.get(1).rowIndex();
+		column1=BoatPositionsC.get(0).columnIndex();
+		column2=BoatPositionsC.get(1).columnIndex();
+		if (row1==row2){
+			Choriz=true;
+		} else if (column1==column2){
+			Cvert=true;
+		}
+	}
+	
+	private void directionofACBoat(){
+		int row1,row2,column1,column2;
+		row1=BoatPositionsAC.get(0).rowIndex();
+		row2=BoatPositionsAC.get(1).rowIndex();
+		column1=BoatPositionsAC.get(0).columnIndex();
+		column2=BoatPositionsAC.get(1).columnIndex();
+		if (row1==row2){
+			Ahoriz=true;
+		} else if (column1==column2){
+			Avert=true;
+		}
+	}
+	private void directionofBBoat(){
+		int row1,row2,column1,column2;
+		row1=BoatPositionsB.get(0).rowIndex();
+		row2=BoatPositionsB.get(1).rowIndex();
+		column1=BoatPositionsB.get(0).columnIndex();
+		column2=BoatPositionsB.get(1).columnIndex();
+		if (row1==row2){
+			Bhoriz=true;
+		} else if (column1==column2){
+			Bvert=true;
+		}
+	}
+	private Position direction(int row,int column){
+		Position finding = null; 
+		boolean positionpicked=false;
+		do {
+			if ((row-1)>-1&&positionpicked==false){	
+				if (alreadyshot(new Position (row-1,column))==false){
+					finding=new Position (row-1,column);
+					positionpicked=true;
+				}
+			}
+			if ((column+1)<10&&positionpicked==false){
+				if (alreadyshot(new Position (row,column+1))==false){
+					finding=new Position (row,column+1);
+					positionpicked=true;
+				}
+			}
+			if ((row+1)<10&&positionpicked==false){
+				if (alreadyshot(new Position (row+1,column))==false){
+					finding=new Position (row+1,column);
+					positionpicked=true;
+				}
+			}
+
+			if ((column-1)>-1&&positionpicked==false){
+				if (alreadyshot(new Position (row,column-1))==false){
+					finding=new Position (row,column-1);
+					positionpicked=true;
+				}
+			}
+		}while(alreadyshot(finding));
+		return finding;
+	}
+
+	private void keeptrackoflasthit(){
+		boolean alreadyin=false;
+		if (lasthit){
+			if (lastboat.substring(0,1).compareTo("A")==0){
+				for (Object stringsInArray: BoatPositionsAC){
+					if (lastPosition.toString().compareTo( stringsInArray.toString())==0){
+						alreadyin=true;
+					}
+				}
+				if (alreadyin==false){
+					BoatPositionsAC.add(lastPosition);
+					AllBoats.add(lastPosition);
+				}
+				aFound=true;
+				if(BoatPositionsAC.size()==5){
+					Asunk=true;
+				}
+			}else if (lastboat.substring(0,1).compareTo("B")==0){
+				for (Object stringsInArray: BoatPositionsB){
+					if (lastPosition.toString().compareTo( stringsInArray.toString())==0){
+						alreadyin=true;
+					}
+				}
+				if (alreadyin==false){
+					BoatPositionsB.add(lastPosition);
+					AllBoats.add(lastPosition);
+				}
+				bFound=true;
+				if(BoatPositionsB.size()==4){
+					Bsunk=true;
+				}
+			}else if (lastboat.substring(0,1).compareTo("C")==0){
+				for (Object stringsInArray: BoatPositionsC){
+					if (lastPosition.toString().compareTo( stringsInArray.toString())==0){
+						alreadyin=true;
+					}
+				}
+				if (alreadyin==false){
+					BoatPositionsC.add(lastPosition);
+					AllBoats.add(lastPosition);
+				}
+				cFound=true;
+				if(BoatPositionsC.size()==3){
+					Csunk=true;
+				}
+			}else if (lastboat.substring(0,1).compareTo("D")==0){
+				for (Object stringsInArray: BoatPositionsD){
+					if (lastPosition.toString().compareTo( stringsInArray.toString())==0){
+						alreadyin=true;
+					}
+				}
+				if (alreadyin==false){
+					BoatPositionsD.add(lastPosition);
+					AllBoats.add(lastPosition);
+				}
+				dFound=true;
+				if(BoatPositionsD.size()==2){
+					Dsunk=true;
+				}
+			}else if (lastboat.substring(0,1).compareTo("S")==0){
+				for (Object stringsInArray: BoatPositionsS){
+					if (lastPosition.toString().compareTo( stringsInArray.toString())==0){
+						alreadyin=true;
+					}
+				}
+				if (alreadyin==false){
+					BoatPositionsS.add(lastPosition);
+					AllBoats.add(lastPosition);
+				}
+				sFound=true;
+				if(BoatPositionsS.size()==3){
+					Ssunk=true;
+				}
+			}
+		}
+	}
+	private Position sinkC(boolean horiz){
+		Position position1;
+		Position position2;
+		int row1,row2,column1,column2, rowpos, columnpos;
+		if (horiz){
+			position1=BoatPositionsC.get(0);
+			position2=BoatPositionsC.get(1);
+
+			column1=BoatPositionsC.get(0).columnIndex();
+			column2=BoatPositionsC.get(1).columnIndex();
+			if (Math.abs(column1-column2)==1){
+				//they are right next to each other
+				rowpos=BoatPositionsC.get(0).rowIndex();
+				//try the right position
+				if (column1-column2==1){
+					columnpos=BoatPositionsC.get(0).columnIndex()+1;
+				}else{
+					columnpos=BoatPositionsC.get(0).columnIndex()+2;
+				}
+				if (columnpos<10&&!alreadyshot(new Position(rowpos,columnpos))){
+					return new Position(rowpos,columnpos);
+				}
+
+				//try the left position
+
+				if (column1-column2==1){
+					columnpos=BoatPositionsC.get(0).columnIndex()-2;
+				}else{
+					columnpos=BoatPositionsC.get(0).columnIndex()-1;
+				}
+
+				if (columnpos>-1&&!alreadyshot(new Position(rowpos,columnpos))){
+					return new Position(rowpos,columnpos);
+				}
+			}else if (Math.abs(column1-column2)==2){
+				//you need to hit in between
+				rowpos=BoatPositionsC.get(0).rowIndex();
+				if (column1-column2==2){
+					columnpos=BoatPositionsC.get(0).columnIndex()-1;
+				}else{
+					columnpos=BoatPositionsC.get(0).columnIndex()+1;
+				}
+				return new Position(rowpos,columnpos);
+			}
+		}else if (horiz==false){
+			position1=BoatPositionsC.get(0);
+			position2=BoatPositionsC.get(1);
+
+			row1=BoatPositionsC.get(0).rowIndex();
+			row2=BoatPositionsC.get(1).rowIndex();
+			if (Math.abs(row1-row2)==1){
+				//they are right next to each other
+				columnpos=BoatPositionsC.get(0).columnIndex();
+				//try the up position
+				if (row1-row2==1){
+					rowpos=BoatPositionsC.get(0).rowIndex()+1;
+				}else{
+					rowpos=BoatPositionsC.get(0).rowIndex()+2;
+				}
+				if (rowpos<10&&!alreadyshot(new Position(rowpos,columnpos))){
+					return new Position(rowpos,columnpos);
+				}
+
+				//try the down position
+
+				if (row1-row2==1){
+					rowpos=BoatPositionsC.get(0).rowIndex()-2;
+				}else{
+					rowpos=BoatPositionsC.get(0).rowIndex()-1;
+				}
+
+				if (rowpos>-1&&!alreadyshot(new Position(rowpos,columnpos))){
+					return new Position(rowpos,columnpos);
+				}
+			}else if (Math.abs(row1-row2)==2){
+				//you need to hit in between
+				columnpos=BoatPositionsC.get(0).columnIndex();
+				if (row1-row2==2){
+					rowpos=BoatPositionsC.get(0).rowIndex()-1;
+				}else{
+					rowpos=BoatPositionsC.get(0).rowIndex()+1;
+				}
+				return new Position(rowpos,columnpos);
+			}
+		}
+		return new Position(0,0);
+	}
+	private Position sinkB (boolean horiz){
+		if (BoatPositionsB.size()==2){
+			if (horiz){
+				//when horiz is true
+				int row, column;
+				Position position1;
+				Position position2;
+				Position hit;
+				if ((BoatPositionsB.get(0).columnIndex())<(BoatPositionsB.get(1).columnIndex())){
+					position1=BoatPositionsB.get(0);
+					position2=BoatPositionsB.get(1);
+				}else{
+					position1=BoatPositionsB.get(1);
+					position2=BoatPositionsB.get(0);
+				}
+
+				if (position2.columnIndex()-position1.columnIndex()==3){
+					//hit in between
+					column=position1.columnIndex()+1;
+					row=position1.rowIndex();
+					hit = new Position (row,column);
+					if (!alreadyshot(hit)){
+						return hit;
+					}else{
+						column++;
+						hit = new Position (row,column);
+						return hit;
+					}
+				}else {
+					//hit left or right.
+					hit=new Position(0,0);//dummy position
+					if (position1.columnIndex()-1>-1){
+						column=position1.columnIndex()-1;
+						row=position1.rowIndex();
+						hit=new Position(row,column);
+					}
+					if ((position1.columnIndex()-1>-1)&&!alreadyshot(hit)){
+						return hit;
+					}else{
+						row=position1.rowIndex();
+						column=position2.columnIndex()+1;
+						hit = new Position (row,column);
+						return hit;
+					}
+				}
+			}else{
+				//when vertical is true
+				int row, column;
+				Position position1;
+				Position position2;
+				Position hit;
+				if ((BoatPositionsB.get(0).rowIndex())<(BoatPositionsB.get(1).rowIndex())){
+					position1=BoatPositionsB.get(0);
+					position2=BoatPositionsB.get(1);
+				}else{
+					position1=BoatPositionsB.get(1);
+					position2=BoatPositionsB.get(0);
+				}
+
+				if (position2.rowIndex()-position1.rowIndex()==3){
+					//hit in between
+					column=position1.columnIndex();
+					row=position1.rowIndex()+1;
+					hit=new Position(0,0);//dummy position
+
+					if (!alreadyshot(hit)){
+						return hit;
+					}else{
+						row++;
+						hit = new Position (row,column);
+						return hit;
+					}
+				}else {
+					//hit up or down
+					column=position1.columnIndex();
+					row=position1.rowIndex()-1;
+					hit=new Position(0,0);//dummy position
+					if (legal(row,column))
+						hit=new Position(row,column);
+					if (legal(row,column)==true&&!alreadyshot(hit)){
+						return hit;
+					}else{
+						column=position2.columnIndex();
+						row=position2.rowIndex()+1;
+						hit = new Position (row,column);
+						return hit;
+					}
+				}		
+			}
+		}else if (BoatPositionsB.size()==3){
+			ArrayList<Position> order=new ArrayList<Position>();
+			int row, column;
+			Position position1, position2, position3;
+			Position hit;
+
+			if (horiz){
+				if ((BoatPositionsB.get(0).columnIndex())<(BoatPositionsB.get(1).columnIndex())){
+					order.add(BoatPositionsB.get(0));
+					order.add(BoatPositionsB.get(1));
+				}else{
+					order.add(BoatPositionsB.get(1));
+					order.add(BoatPositionsB.get(0));
+
+				}
+				if (BoatPositionsB.get(2).columnIndex()<order.get(1).columnIndex()  && BoatPositionsB.get(2).columnIndex()>order.get(0).columnIndex() ){
+					order.add(1, BoatPositionsB.get(2));	
+				}else if (BoatPositionsB.get(2).columnIndex()<order.get(1).columnIndex()  && BoatPositionsB.get(2).columnIndex()<order.get(0).columnIndex()){
+					order.add(0, BoatPositionsB.get(2));	
+				}else{
+					order.add(BoatPositionsB.get(2));
+				}
+				position1=order.get(0);
+				position2=order.get(1);
+				position3=order.get(2);
+
+				if (position1.columnIndex()+1==position2.columnIndex()    &&    position2.columnIndex()+1==position3.columnIndex()){
+					//if they are all bunched together
+					row=position1.rowIndex();
+					column=position1.columnIndex()-1;
+					hit =new Position(0,0);//dummy position
+					if (legal(row,column))
+						hit=new Position(row,column);	
+					if (alreadyshot(hit)){
+						column=position3.columnIndex()+1;
+						row=position3.rowIndex();
+						if (legal(row,column))
+							hit=new Position (row,column);
+					}
+					return hit;
+				}else{
+					//theres a gap
+					if (position1.columnIndex()+1==position2.columnIndex()){
+						row=position2.rowIndex();
+						column=position2.columnIndex()+1;
+						return new Position (row,column);
+					}else{
+						row=position1.rowIndex();
+						column=position1.columnIndex()+1;
+						return new Position (row,column);
+					}
+				}
+			}else{
+				//vert is true;
+				if ((BoatPositionsB.get(0).rowIndex())<(BoatPositionsB.get(1).rowIndex())){
+					order.add(BoatPositionsB.get(0));
+					order.add(BoatPositionsB.get(1));
+				}else{
+					order.add(BoatPositionsB.get(1));
+					order.add(BoatPositionsB.get(0));
+				}
+				if (BoatPositionsB.get(2).rowIndex()<order.get(1).rowIndex()  && BoatPositionsB.get(2).rowIndex()>order.get(0).rowIndex() ){
+					order.add(1, BoatPositionsB.get(2));	
+				}else if (BoatPositionsB.get(2).rowIndex()<order.get(1).rowIndex()  && BoatPositionsB.get(2).rowIndex()<order.get(0).rowIndex()){
+					order.add(0, BoatPositionsB.get(2));	
+				}else{
+					order.add(BoatPositionsB.get(2));
+				}
+				position1=order.get(0);
+				position2=order.get(1);
+				position3=order.get(2);
+
+				if (position1.rowIndex()+1==position2.rowIndex()    &&    position2.rowIndex()+1==position3.rowIndex()){
+					//if they are all bunched together
+					row=position1.rowIndex()-1;
+					column=position1.columnIndex();
+					hit=new Position(0,0);//dummy position
+					if (row>-1)
+						hit=new Position(row,column);	
+					if (alreadyshot(hit)){
+						row=position3.rowIndex()+1;
+						column=position3.columnIndex();
+						hit=new Position (row,column);
+					}
+					return hit;
+				}else{
+					//theres a gap
+					if (position1.rowIndex()+1==position2.rowIndex()){
+						row=position2.rowIndex()+1;
+						column=position2.columnIndex();
+						return new Position (row,column);
+					}else{
+						row=position1.rowIndex()+1;
+						column=position1.columnIndex();
+						return new Position(row,column);
+					}
+				}
+			}
+		}
+		return new Position(0,0);
+	}
+	private boolean legal(int row, int column){
+		if (row <0||row>9||column<0||column>9){
+			return false;
+		}
+		return true;
+	}
+	private Position sinkS(boolean horiz){
+		Position position1;
+		Position position2;
+		int row1,row2,column1,column2, rowpos, columnpos;
+		if (horiz){
+			position1=BoatPositionsS.get(0);
+			position2=BoatPositionsS.get(1);
+
+			column1=BoatPositionsS.get(0).columnIndex();
+			column2=BoatPositionsS.get(1).columnIndex();
+			if (Math.abs(column1-column2)==1){
+				//they are right next to each other
+				rowpos=BoatPositionsS.get(0).rowIndex();
+				//try the right position
+				if (column1-column2==1){
+					columnpos=BoatPositionsS.get(0).columnIndex()+1;
+				}else{
+					columnpos=BoatPositionsS.get(0).columnIndex()+2;
+				}
+				if (columnpos<10&&!alreadyshot(new Position(rowpos,columnpos))){
+					return new Position(rowpos,columnpos);
+				}
+				//try the left position
+				if (column1-column2==1){
+					columnpos=BoatPositionsS.get(0).columnIndex()-2;
+				}else{
+					columnpos=BoatPositionsS.get(0).columnIndex()-1;
+				}
+				if (columnpos>-1&&!alreadyshot(new Position(rowpos,columnpos))){
+					return new Position(rowpos,columnpos);
+				}
+			}else if (Math.abs(column1-column2)==2){
+				//you need to hit in between
+				rowpos=BoatPositionsS.get(0).rowIndex();
+				if (column1-column2==2){
+					columnpos=BoatPositionsS.get(0).columnIndex()-1;
+				}else{
+					columnpos=BoatPositionsS.get(0).columnIndex()+1;
+				}
+				return new Position(rowpos,columnpos);
+			}
+		}else if (horiz==false){
+			position1=BoatPositionsS.get(0);
+			position2=BoatPositionsS.get(1);
+			row1=BoatPositionsS.get(0).rowIndex();
+			row2=BoatPositionsS.get(1).rowIndex();
+			if (Math.abs(row1-row2)==1){
+				//they are right next to each other
+				columnpos=BoatPositionsS.get(0).columnIndex();
+				//try the up position
+				if (row1-row2==1){
+					rowpos=BoatPositionsS.get(0).rowIndex()+1;
+				}else{
+					rowpos=BoatPositionsS.get(0).rowIndex()+2;
+				}
+				if (rowpos<10&&!alreadyshot(new Position(rowpos,columnpos))){
+
+					return new Position(rowpos,columnpos);
+				}
+				//try the down position
+				if (row1-row2==1){
+					rowpos=BoatPositionsS.get(0).rowIndex()-2;
+				}else{
+					rowpos=BoatPositionsS.get(0).rowIndex()-1;
+				}
+				if (rowpos>-1&&!alreadyshot(new Position(rowpos,columnpos))){						
+					return new Position(rowpos,columnpos);
+				}
+			}else if (Math.abs(row1-row2)==2){
+				//you need to hit in between
+				columnpos=BoatPositionsS.get(0).columnIndex();
+				if (row1-row2==2){
+					rowpos=BoatPositionsS.get(0).rowIndex()-1;
+				}else{
+					rowpos=BoatPositionsS.get(0).rowIndex()+1;
+				}
+				if (legal(rowpos,columnpos))
+					return new Position(rowpos,columnpos);
+			}
+		}
+		return new Position(0,0);
+	}
+	private Position sinkAC(boolean horiz){
+		Position hit=new Position(0,0);
+		int row,column;
+		Position position1, position2,position3, position4;
+
+		if (BoatPositionsAC.size()==2){
+			if (horiz){
+				//horizontal boat
+				if (BoatPositionsAC.get(0).columnIndex()<BoatPositionsAC.get(1).columnIndex()){
+					position1=BoatPositionsAC.get(0);
+					position2=BoatPositionsAC.get(1);
+				}else{
+					position1=BoatPositionsAC.get(1);
+					position2=BoatPositionsAC.get(0);
+				}
+				if (position2.columnIndex()-position1.columnIndex()==4){
+					//you just need to hit in between
+					column=position1.columnIndex()+1;
+					row=position1.rowIndex();
+					if (legal(row,column))
+						return new Position (row,column);
+				}else{
+					//you just need to keep hitting the ends
+					column=position1.columnIndex()-1;
+					row=position1.rowIndex();
+					if (legal(row,column))
+						hit=new Position(row,column);
+					if (alreadyshot(hit)){
+						column=position2.columnIndex()+1;
+						row=position2.rowIndex();
+						if (legal(row,column))
+							hit=new Position(row,column);
+					}
+					return hit;
+				}
+			}else{
+				//vertical boat
+				if (BoatPositionsAC.get(0).rowIndex()<BoatPositionsAC.get(1).rowIndex()){
+					position1=BoatPositionsAC.get(0);
+					position2=BoatPositionsAC.get(1);
+				}else{
+					position1=BoatPositionsAC.get(1);
+					position2=BoatPositionsAC.get(0);
+				}
+				if (position2.rowIndex()-position1.rowIndex()==4){
+					//you just need to hit in between
+					column=position1.columnIndex();
+					row=position1.rowIndex()+1;
+					if (legal(row,column))
+						return new Position (row,column);
+				}else{
+					//you just need to keep hitting the ends
+					column=position1.columnIndex();
+					row=position1.rowIndex()-1;
+					if (legal(row,column))
+						hit=new Position(row,column);
+					if (alreadyshot(hit)){
+						column=position2.columnIndex();
+						row=position2.rowIndex()+1;
+						if (legal(row,column))
+							hit=new Position(row,column);
+					}
+					return hit;
+				}
+			}
+		}else if (BoatPositionsAC.size()==3){
+			ArrayList<Position> order=new ArrayList<Position>();
+			if (horiz){
+				if ((BoatPositionsAC.get(0).columnIndex())<(BoatPositionsAC.get(1).columnIndex())){
+					order.add(BoatPositionsAC.get(0));
+					order.add(BoatPositionsAC.get(1));
+				}else{
+					order.add(BoatPositionsAC.get(1));
+					order.add(BoatPositionsAC.get(0));
+
+				}
+				if (BoatPositionsAC.get(2).columnIndex()<order.get(1).columnIndex()  && BoatPositionsAC.get(2).columnIndex()>order.get(0).columnIndex() ){
+					order.add(1, BoatPositionsAC.get(2));	
+				}else if (BoatPositionsAC.get(2).columnIndex()<order.get(1).columnIndex()  && BoatPositionsAC.get(2).columnIndex()<order.get(0).columnIndex()){
+					order.add(0, BoatPositionsAC.get(2));	
+				}else{
+					order.add(BoatPositionsAC.get(2));
+				}
+				position1=order.get(0);
+				position2=order.get(1);
+				position3=order.get(2);
+				if(position3.columnIndex()-position1.columnIndex()==4){
+					//you just need to hit in between
+					column=position1.columnIndex()+1;
+					row=position1.rowIndex();
+					if (legal(row,column))
+						hit=new Position(row,column);
+					if (alreadyshot(hit)){
+						column++;
+						if (legal(row,column))
+							hit=new Position(row,column);
+					}
+					return hit;
+				}else{
+					//you need to hit at the end
+					column=position1.columnIndex()-1;
+					row=position1.rowIndex();
+					if (legal(row,column))
+						hit=new Position(row,column);
+					if (alreadyshot(hit)){
+						column=position3.columnIndex()+1;
+						if (legal(row,column))
+							hit=new Position(row,column);
+					}
+					return hit;
+				}
+			}else{
+				//when its verticale
+				if ((BoatPositionsAC.get(0).rowIndex())<(BoatPositionsAC.get(1).rowIndex())){
+					order.add(BoatPositionsAC.get(0));
+					order.add(BoatPositionsAC.get(1));
+				}else{
+					order.add(BoatPositionsAC.get(1));
+					order.add(BoatPositionsAC.get(0));
+				}
+				if (BoatPositionsAC.get(2).rowIndex()<order.get(1).rowIndex()  && BoatPositionsAC.get(2).rowIndex()>order.get(0).rowIndex() ){
+					order.add(1, BoatPositionsAC.get(2));	
+				}else if (BoatPositionsAC.get(2).rowIndex()<order.get(1).rowIndex()  && BoatPositionsAC.get(2).rowIndex()<order.get(0).rowIndex()){
+					order.add(0, BoatPositionsAC.get(2));	
+				}else{
+					order.add(BoatPositionsAC.get(2));
+				}
+				position1=order.get(0);
+				position2=order.get(1);
+				position3=order.get(2);
+				if(position3.rowIndex()-position1.rowIndex()==4){
+					//you just need to hit in between
+					column=position1.columnIndex();
+					row=position1.rowIndex()+1;
+					if (legal(row,column))
+						hit=new Position(row,column);
+					if (alreadyshot(hit)){
+						row++;
+						if (legal(row,column))
+							hit=new Position(row,column);
+					}
+					return hit;
+				}else{
+					//you need to hit at the end
+					column=position1.columnIndex();
+					row=position1.rowIndex()-1;
+					if (legal(row,column))
+						hit=new Position(row,column);
+					if (alreadyshot(hit)){
+						row=position3.rowIndex()+1;
+						if (legal(row,column))
+							hit=new Position(row,column);
+					}
+					return hit;
+				}
+			}
+		}else{
+			ArrayList<Position> order=new ArrayList<Position>();
+			//so now it has 4 positions hit. i need to order the positions and then figure out which one needs to be hit
+			if (horiz){
+				//so its horiz
+				if ((BoatPositionsAC.get(0).columnIndex())<(BoatPositionsAC.get(1).columnIndex())){
+					order.add(BoatPositionsAC.get(0));
+					order.add(BoatPositionsAC.get(1));
+				}else{
+					order.add(BoatPositionsAC.get(1));
+					order.add(BoatPositionsAC.get(0));
+
+				}
+				if (BoatPositionsAC.get(2).columnIndex()<order.get(1).columnIndex()  && BoatPositionsAC.get(2).columnIndex()>order.get(0).columnIndex() ){
+					order.add(1, BoatPositionsAC.get(2));	
+				}else if (BoatPositionsAC.get(2).columnIndex()<order.get(1).columnIndex()  && BoatPositionsAC.get(2).columnIndex()<order.get(0).columnIndex()){
+					order.add(0, BoatPositionsAC.get(2));	
+				}else{
+					order.add(BoatPositionsAC.get(2));
+				}
+				position1=order.get(0);
+				position2=order.get(1);
+				position3=order.get(2);
+				if (BoatPositionsAC.get(3).columnIndex()<order.get(1).columnIndex()){
+					if (BoatPositionsAC.get(3).columnIndex()<order.get(0).columnIndex()){
+						order.add(0, BoatPositionsAC.get(3));
+					}else{
+						order.add(1, BoatPositionsAC.get(3));
+					}
+				}else if (BoatPositionsAC.get(3).columnIndex()<order.get(2).columnIndex()){
+					order.add(2, BoatPositionsAC.get(3));
+				}else{
+					order.add(BoatPositionsAC.get(3));
+				}
+
+				position1=order.get(0);
+				position2=order.get(1);
+				position3=order.get(2);
+				position4=order.get(3);
+
+				if (position4.columnIndex()-position1.columnIndex()==3){
+					column=position1.columnIndex()-1;
+					row=position1.rowIndex();
+					if (legal(row,column))
+						hit=new Position(row,column);
+					if (alreadyshot(hit)){
+						column=position4.columnIndex()+1;
+						if (legal(row,column))
+							hit=new Position (row,column);
+					}
+					return hit;
+				}else{
+					column=position1.columnIndex();
+					row=position1.rowIndex();
+					if (legal(row,column))
+						hit=new Position(row,column);
+					while (alreadyshot(hit)){
+						column++;
+						if (legal(row,column))
+							hit=new Position(row,column);
+					}
+					return hit;
+				}
+
+			}else{
+				//so its vert
+				if ((BoatPositionsAC.get(0).rowIndex())<(BoatPositionsAC.get(1).rowIndex())){
+					order.add(BoatPositionsAC.get(0));
+					order.add(BoatPositionsAC.get(1));
+				}else{
+					order.add(BoatPositionsAC.get(1));
+					order.add(BoatPositionsAC.get(0));
+
+				}
+				if (BoatPositionsAC.get(2).rowIndex()<order.get(1).rowIndex()  && BoatPositionsAC.get(2).rowIndex()>order.get(0).rowIndex() ){
+					order.add(1, BoatPositionsAC.get(2));	
+				}else if (BoatPositionsAC.get(2).rowIndex()<order.get(1).rowIndex()  && BoatPositionsAC.get(2).rowIndex()<order.get(0).rowIndex()){
+					order.add(0, BoatPositionsAC.get(2));	
+				}else{
+					order.add(BoatPositionsAC.get(2));
+				}
+				position1=order.get(0);
+				position2=order.get(1);
+				position3=order.get(2);
+				if (BoatPositionsAC.get(3).rowIndex()<order.get(1).rowIndex()){
+					if (BoatPositionsAC.get(3).rowIndex()<order.get(0).rowIndex()){
+						order.add(0, BoatPositionsAC.get(3));
+					}else{
+						order.add(1, BoatPositionsAC.get(3));
+					}
+				}else if (BoatPositionsAC.get(3).rowIndex()<order.get(2).rowIndex()){
+					order.add(2, BoatPositionsAC.get(3));
+				}else{
+					order.add(BoatPositionsAC.get(3));
+				}
+
+				position1=order.get(0);
+				position2=order.get(1);
+				position3=order.get(2);
+				position4=order.get(3);
+
+				if (position4.rowIndex()-position1.rowIndex()==3){
+					column=position1.columnIndex();
+					row=position1.rowIndex()-1;
+					if (legal(row,column))
+						hit=new Position(row,column);
+					if (alreadyshot(hit)){
+						row=position4.rowIndex()+1;
+						if (legal(row,column))
+							hit=new Position (row,column);
+					}
+					return hit;
+				}else{
+					column=position1.columnIndex();
+					row=position1.rowIndex();
+					if (legal(row,column))
+						hit=new Position(row,column);
+					while (alreadyshot(hit)){
+						row++;
+						if (legal(row,column))
+							hit=new Position(row,column);
+					}
+					return hit;
+				}
+			}
+		}
+		return new Position(0,0);
+	}
+}
