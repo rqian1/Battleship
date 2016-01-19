@@ -1,0 +1,97 @@
+
+public class Position {
+	private char row;
+	private int column;
+	Position(char row1, int column1){
+		String temp;
+		temp=""+row1;
+		temp=temp.toUpperCase();
+		row=temp.charAt(0);
+		column=column1;
+	}
+	Position (int rowIndex, int columnIndex){
+		column=columnIndex+1;
+		if (rowIndex==5){
+			row='F';
+		}else if (rowIndex<5){
+			if (rowIndex==3){
+				row='D';
+			}else if (rowIndex<3){
+				if (rowIndex<1){
+					row='A';
+				}else if (rowIndex==2){
+					row='C';
+				}else{
+					row='B';
+				}
+			}	else if (rowIndex>3){
+				row='E';
+			}
+		}else{
+			if (rowIndex==8){
+				row='I';
+			}	else if (rowIndex==7){
+				row='H';
+			}	else if (rowIndex==9){
+				row='J';
+			}	else{
+				row='G';
+			}
+		}
+	}
+	public char row (){
+		return row;
+	}
+	public int column(){
+		return column;
+	}
+	public int rowIndex(){
+		String temp;
+		temp=""+row;
+		if (temp.compareTo("E")==0){
+			return 4;
+		}
+		if (temp.compareTo("E")<0){
+			if(temp.compareTo("C")==0){
+				return 2;
+			}
+			else if(temp.compareTo("C")<0){
+				if(temp.compareTo("A")==0){
+					return 0;
+				}else{
+					return 1;
+				}
+			}
+			else{
+				return 3;
+			}
+		}
+		else{
+			if(temp.compareTo("H")==0){
+				return 7;
+			}
+			else if(temp.compareTo("H")<0){
+				if(temp.compareTo("F")==0){
+					return 5;
+				}else{
+					return 6;
+				}
+			}
+			else{
+				if(temp.compareTo("I")==0){
+					return 8;
+				}else{
+					return 9;
+				}
+			}
+		}
+	}
+	public int columnIndex(){
+		return column-1;
+	}
+	public String toString(){
+		String returnthis;
+		returnthis= row+"-"+column;
+		return returnthis;
+	}
+}
